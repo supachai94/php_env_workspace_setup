@@ -146,7 +146,6 @@ Extensions ที่ติดตั้งสำหรับ Laravel 10:
 - **intl** - สำหรับ internationalization (จำเป็นสำหรับ Laravel localization)
 - **opcache** - สำหรับเพิ่มประสิทธิภาพการทำงาน
 - **exif** - สำหรับจัดการข้อมูล EXIF จากรูปภาพ
-- **pcntl** - สำหรับ process control
 
 **หมายเหตุ**: Laravel 10 ต้องการ PHP >= 8.1 ดังนั้นควรใช้ PHP 8.4 (PHP 7.4 ไม่รองรับ Laravel 10)
 

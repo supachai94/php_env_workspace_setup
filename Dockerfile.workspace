@@ -42,7 +42,6 @@ RUN apt-get update && apt-get install -y \
     php7.4-tokenizer \
     php7.4-fileinfo \
     php7.4-exif \
-    php7.4-pcntl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP 8.4 and extensions (required for Laravel 10)
@@ -64,7 +63,6 @@ RUN apt-get update && apt-get install -y \
     php8.4-tokenizer \
     php8.4-fileinfo \
     php8.4-exif \
-    php8.4-pcntl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
