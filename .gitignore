@@ -1,0 +1,44 @@
+# Project files
+www/
+*.log
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.tar
+*.tar.gz
+*.zip
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
