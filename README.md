@@ -19,8 +19,31 @@
 ├── start-php-fpm.sh                  # Script สำหรับเริ่ม PHP-FPM
 ├── docker-entrypoint.sh              # Entrypoint script สำหรับตั้งค่า permissions
 ├── docker-compose.yml                # Docker Compose configuration
+├── .gitignore                        # Git ignore rules
+├── .gitattributes                    # Git attributes
 └── www/                               # โฟลเดอร์สำหรับเก็บโค้ด PHP/Laravel (จะถูกสร้างอัตโนมัติ)
 ```
+
+## Git Repository
+
+โปรเจคนี้มี Git repository อยู่แล้ว สามารถใช้งานได้ทันที:
+
+```bash
+# ตรวจสอบสถานะ
+git status
+
+# ดู commit history
+git log
+
+# สร้าง branch ใหม่
+git checkout -b feature/your-feature
+
+# เพิ่ม remote repository (ถ้าต้องการ)
+git remote add origin <your-repo-url>
+git push -u origin master
+```
+
+**หมายเหตุ**: โฟลเดอร์ `www/` ถูก ignore โดย Git เพื่อไม่ให้ commit โค้ดโปรเจคเข้าไปใน repository นี้
 
 ## การใช้งาน
 
