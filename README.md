@@ -1,11 +1,11 @@
 # PHP-FPM Docker Environment
 
-โปรเจคนี้ประกอบด้วย Docker workspace ที่มี PHP-FPM เวอร์ชัน 7.4 และ 8.4/8.3 อยู่ใน container เดียวกัน โดยแต่ละเวอร์ชันจะเปิด port แยกกันเพื่อให้ nginx เรียกใช้งานได้
+โปรเจคนี้ประกอบด้วย Docker workspace ที่มี PHP-FPM เวอร์ชัน 7.4 และ 8.4 อยู่ใน container เดียวกัน โดยแต่ละเวอร์ชันจะเปิด port แยกกันเพื่อให้ nginx เรียกใช้งานได้
 
 ## Port Configuration
 
 - **PHP 7.4 FPM**: Port `9000`
-- **PHP 8.4/8.3 FPM**: Port `9001`
+- **PHP 8.4 FPM**: Port `9001`
 
 ## โครงสร้างไฟล์
 
@@ -14,7 +14,6 @@
 ├── Dockerfile.workspace              # Dockerfile สำหรับ Development Workspace
 ├── php-fpm-workspace-74.conf         # Config สำหรับ PHP-FPM 7.4
 ├── php-fpm-workspace-84.conf         # Config สำหรับ PHP-FPM 8.4
-├── php-fpm-workspace-83.conf         # Config สำหรับ PHP-FPM 8.3 (fallback)
 ├── php.ini                            # PHP configuration สำหรับ Laravel
 ├── start-php-fpm.sh                  # Script สำหรับเริ่ม PHP-FPM
 ├── docker-entrypoint.sh              # Entrypoint script สำหรับตั้งค่า permissions
@@ -52,6 +51,8 @@ git push -u origin master
 ```bash
 docker-compose up -d --build
 ```
+
+**หมายเหตุ**: PHP-FPM จะเริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น พร้อมใช้งานกับ nginx ทันที
 
 ### 2. ตรวจสอบสถานะ Containers
 
@@ -92,7 +93,7 @@ server {
 }
 ```
 
-### ตัวอย่าง Nginx Configuration สำหรับ PHP 8.4/8.3
+### ตัวอย่าง Nginx Configuration สำหรับ PHP 8.4
 
 ```nginx
 server {
@@ -118,23 +119,36 @@ server {
 
 ```nginx
 fastcgi_pass 127.0.0.1:9000;  # สำหรับ PHP 7.4
-fastcgi_pass 127.0.0.1:9001;  # สำหรับ PHP 8.4/8.3
+fastcgi_pass 127.0.0.1:9001;  # สำหรับ PHP 8.4
 ```
 
 ## PHP Extensions ที่ติดตั้ง
 
-Extensions ที่ติดตั้งสำหรับ Laravel:
+Extensions ที่ติดตั้งสำหรับ Laravel 10:
 
+### Extensions ที่จำเป็นสำหรับ Laravel 10:
 - **pdo_mysql** - สำหรับเชื่อมต่อ MySQL/MariaDB
-- **mbstring** - สำหรับจัดการ multibyte strings
-- **exif** - สำหรับจัดการข้อมูล EXIF จากรูปภาพ
-- **pcntl** - สำหรับ process control
-- **bcmath** - สำหรับการคำนวณตัวเลขความแม่นยำสูง
+- **mbstring** - สำหรับจัดการ multibyte strings (จำเป็น)
+- **xml** - สำหรับ XML processing (จำเป็น)
+- **dom** - สำหรับ DOM manipulation (จำเป็น)
+- **fileinfo** - สำหรับตรวจสอบประเภทไฟล์ (จำเป็น)
+- **tokenizer** - สำหรับ Laravel Blade templating (จำเป็น)
+- **bcmath** - สำหรับการคำนวณตัวเลขความแม่นยำสูง (จำเป็น)
+- **curl** - สำหรับ HTTP requests (จำเป็น)
+- **json** - สำหรับ JSON processing (มากับ php-common)
+- **openssl** - สำหรับ encryption (มากับ php-common)
+- **pcre** - สำหรับ regular expressions (มากับ php-common)
+- **ctype** - สำหรับ character type checking (มากับ php-common)
+
+### Extensions เพิ่มเติม:
 - **gd** - สำหรับจัดการรูปภาพ
 - **zip** - สำหรับจัดการไฟล์ ZIP (จำเป็นสำหรับ Composer)
 - **intl** - สำหรับ internationalization (จำเป็นสำหรับ Laravel localization)
 - **opcache** - สำหรับเพิ่มประสิทธิภาพการทำงาน
-- **tokenizer** - สำหรับ Laravel Blade templating
+- **exif** - สำหรับจัดการข้อมูล EXIF จากรูปภาพ
+- **pcntl** - สำหรับ process control
+
+**หมายเหตุ**: Laravel 10 ต้องการ PHP >= 8.1 ดังนั้นควรใช้ PHP 8.4 (PHP 7.4 ไม่รองรับ Laravel 10)
 
 ## การทดสอบ
 
@@ -154,17 +168,26 @@ phpinfo();
 # ตรวจสอบ PHP 7.4
 docker-compose exec workspace php7.4 -v
 
-# ตรวจสอบ PHP 8.4/8.3
+# ตรวจสอบ PHP 8.4
 docker-compose exec workspace php -v
 ```
 
 ## การใช้งานกับ Laravel
 
+### Laravel Version Support
+
+- **Laravel 10**: ต้องการ PHP >= 8.1 (แนะนำใช้ PHP 8.4) ✅
+- **Laravel 9**: ต้องการ PHP >= 8.0 (รองรับ PHP 8.4) ✅
+- **Laravel 8**: ต้องการ PHP >= 7.3 (รองรับ PHP 7.4 และ 8.4) ✅
+
 ### 1. ติดตั้ง Laravel Project
 
 ```bash
-# สร้าง Laravel project ใหม่
-composer create-project laravel/laravel www
+# สร้าง Laravel 10 project ใหม่ (ใช้ PHP 8.4)
+docker-compose exec workspace composer create-project laravel/laravel:^10.0 www
+
+# หรือสร้าง Laravel 9 project
+docker-compose exec workspace composer create-project laravel/laravel:^9.0 www
 
 # หรือ clone project ที่มีอยู่แล้ว
 git clone <your-repo> www
@@ -236,7 +259,7 @@ server {
 # ตรวจสอบ PHP 7.4 extensions
 docker-compose exec workspace php7.4 -m
 
-# ตรวจสอบ PHP 8.4/8.3 extensions
+# ตรวจสอบ PHP 8.4 extensions
 docker-compose exec workspace php -m
 ```
 
@@ -269,14 +292,14 @@ docker-compose run --rm workspace bash
 php74 -v
 /usr/bin/php7.4 -v
 
-# ใช้ PHP 8.4 (หรือ 8.3 ถ้า 8.4 ยังไม่มี)
+# ใช้ PHP 8.4
 php -v
 php84 -v
-/usr/bin/php8.4 -v  # หรือ /usr/bin/php8.3 -v
+/usr/bin/php8.4 -v
 
 # สลับ default PHP version
 php74  # สลับเป็น PHP 7.4
-php84  # สลับเป็น PHP 8.4 (หรือ 8.3)
+php84  # สลับเป็น PHP 8.4
 ```
 
 ### 3. ตรวจสอบ PHP Version ที่ติดตั้ง
@@ -285,7 +308,7 @@ php84  # สลับเป็น PHP 8.4 (หรือ 8.3)
 # ตรวจสอบ PHP 7.4
 docker-compose exec workspace php7.4 -v
 
-# ตรวจสอบ PHP 8.4/8.3
+# ตรวจสอบ PHP 8.4
 docker-compose exec workspace php -v
 
 # ตรวจสอบ PHP extensions
@@ -336,7 +359,7 @@ php artisan tinker
 
 Workspace container มี:
 - **PHP 7.4** - พร้อม extensions สำหรับ Laravel
-- **PHP 8.4** (หรือ 8.3 ถ้า 8.4 ยังไม่มี) - พร้อม extensions สำหรับ Laravel
+- **PHP 8.4** - พร้อม extensions สำหรับ Laravel
 - **Composer** - สำหรับจัดการ dependencies
 - **Git** - สำหรับ version control
 - **Vim/Nano** - Text editors
@@ -344,9 +367,26 @@ Workspace container มี:
 
 ### 7. ใช้งาน PHP-FPM จาก Workspace
 
-Workspace container มี PHP-FPM ทั้ง PHP 7.4 และ PHP 8.4/8.3 อยู่แล้ว สามารถใช้แทน containers แยกได้:
+**PHP-FPM จะเริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น** พร้อมใช้งานกับ nginx ทันที
 
-#### วิธีที่ 1: เริ่ม PHP-FPM แบบ Manual
+Workspace container มี PHP-FPM ทั้ง PHP 7.4 และ PHP 8.4 ทำงานพร้อมกัน:
+
+- **PHP 7.4 FPM**: ทำงานบน port 9000 อัตโนมัติ
+- **PHP 8.4 FPM**: ทำงานบน port 9001 อัตโนมัติ
+
+#### ตรวจสอบสถานะ PHP-FPM
+
+```bash
+# ตรวจสอบว่า PHP-FPM ทำงานอยู่
+docker-compose exec workspace ps aux | grep php-fpm
+
+# ตรวจสอบ logs
+docker-compose logs workspace
+```
+
+#### เริ่ม PHP-FPM แบบ Manual (ถ้าต้องการ)
+
+ถ้าต้องการเริ่ม PHP-FPM แบบ manual (เช่น หลังจากเข้า container):
 
 ```bash
 # เข้าใช้งาน workspace
@@ -355,32 +395,14 @@ docker-compose exec workspace bash
 # เริ่ม PHP 7.4 FPM
 php-fpm7.4 -F -y /etc/php/7.4/fpm/php-fpm-workspace-74.conf
 
-# เริ่ม PHP 8.4/8.3 FPM (ใน terminal อีกตัว)
+# เริ่ม PHP 8.4 FPM (ใน terminal อีกตัว)
 php-fpm8.4 -F -y /etc/php/8.4/fpm/php-fpm-workspace-84.conf
-# หรือ
-php-fpm8.3 -F -y /etc/php/8.3/fpm/php-fpm-workspace-83.conf
-```
-
-#### วิธีที่ 2: เริ่ม PHP-FPM อัตโนมัติ
-
-แก้ไข `docker-compose.yml` โดย uncomment บรรทัดนี้:
-
-```yaml
-workspace:
-  # ...
-  command: /usr/local/bin/start-php-fpm.sh
-```
-
-จากนั้น restart container:
-
-```bash
-docker-compose restart workspace
 ```
 
 #### Port Configuration
 
 - **PHP 7.4 FPM**: Port `9000`
-- **PHP 8.4/8.3 FPM**: Port `9001`
+- **PHP 8.4 FPM**: Port `9001`
 
 #### ตัวอย่าง Nginx Configuration
 
@@ -388,15 +410,16 @@ docker-compose restart workspace
 # สำหรับ PHP 7.4
 fastcgi_pass php-workspace:9000;
 
-# สำหรับ PHP 8.4/8.3
+# สำหรับ PHP 8.4
 fastcgi_pass php-workspace:9001;
 ```
 
 ### 8. หมายเหตุ
 
 - โฟลเดอร์ `www` จะถูก map ไปที่ `/var/www/html` ใน workspace container
-- Default PHP version คือ 8.4 (หรือ 8.3 ถ้า 8.4 ยังไม่มี)
+- Default PHP version คือ 8.4
 - สามารถใช้ PHP หลายเวอร์ชันพร้อมกันได้โดยระบุ path เต็ม
-- Workspace สามารถใช้เป็น PHP-FPM server ได้โดยเปิด port 9000 และ 9001
-- ถ้าต้องการให้ PHP-FPM ทำงานอัตโนมัติ ให้ uncomment `command` ใน docker-compose.yml
+- **PHP-FPM เริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น** พร้อมใช้งานกับ nginx
+- Workspace ใช้เป็น PHP-FPM server โดยเปิด port 9000 (PHP 7.4) และ 9001 (PHP 8.4)
+- ถ้าต้องการเข้าใช้งาน container แบบ interactive ให้ใช้ `docker-compose exec workspace bash` (PHP-FPM จะยังทำงานอยู่)
 

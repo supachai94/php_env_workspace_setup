@@ -13,11 +13,8 @@ services:
       - ./www:/var/www/html
     networks:
       - php-network
-    stdin_open: true
-    tty: true
     restart: unless-stopped
-    # Uncomment the line below to start PHP-FPM automatically
-    # command: /usr/local/bin/start-php-fpm.sh
+    command: /usr/local/bin/start-php-fpm.sh
 
 networks:
   php-network:
