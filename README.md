@@ -303,7 +303,7 @@ php artisan tinker
 ### 6. โครงสร้าง Workspace
 
 Workspace container มี:
-- **Base Image**: Debian 12 (Bookworm)
+- **Base Image**: Debian 13 (Trixie)
 - **PHP 7.4** - พร้อม extensions สำหรับ Laravel
 - **PHP 8.4** - พร้อม extensions สำหรับ Laravel
 - **Composer** - สำหรับจัดการ dependencies
