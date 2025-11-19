@@ -4,8 +4,8 @@
 
 ## Port Configuration
 
-- **PHP 7.4 FPM**: Port `9000`
-- **PHP 8.4 FPM**: Port `9001`
+- **PHP 7.4 FPM**: Port `9074`
+- **PHP 8.4 FPM**: Port `9084`
 
 ## โครงสร้างไฟล์
 
@@ -85,7 +85,7 @@ server {
     index index.php index.html;
 
     location ~ \.php$ {
-        fastcgi_pass php-workspace:9000;
+        fastcgi_pass php-workspace:9074;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
@@ -103,7 +103,7 @@ server {
     index index.php index.html;
 
     location ~ \.php$ {
-        fastcgi_pass php-workspace:9001;
+        fastcgi_pass php-workspace:9084;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
@@ -118,8 +118,8 @@ server {
 หาก nginx ทำงานบน host machine (ไม่ใช่ใน Docker) ให้ใช้:
 
 ```nginx
-fastcgi_pass 127.0.0.1:9000;  # สำหรับ PHP 7.4
-fastcgi_pass 127.0.0.1:9001;  # สำหรับ PHP 8.4
+fastcgi_pass 127.0.0.1:9074;  # สำหรับ PHP 7.4
+fastcgi_pass 127.0.0.1:9084;  # สำหรับ PHP 8.4
 ```
 
 ## PHP Extensions ที่ติดตั้ง
@@ -236,7 +236,7 @@ server {
     }
 
     location ~ \.php$ {
-        fastcgi_pass php-workspace:9001;  # หรือ php-workspace:9000 สำหรับ PHP 7.4
+        fastcgi_pass php-workspace:9084;  # หรือ php-workspace:9074 สำหรับ PHP 7.4
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
@@ -370,8 +370,8 @@ Workspace container มี:
 
 Workspace container มี PHP-FPM ทั้ง PHP 7.4 และ PHP 8.4 ทำงานพร้อมกัน:
 
-- **PHP 7.4 FPM**: ทำงานบน port 9000 อัตโนมัติ
-- **PHP 8.4 FPM**: ทำงานบน port 9001 อัตโนมัติ
+- **PHP 7.4 FPM**: ทำงานบน port 9074 อัตโนมัติ
+- **PHP 8.4 FPM**: ทำงานบน port 9084 อัตโนมัติ
 
 #### ตรวจสอบสถานะ PHP-FPM
 
@@ -400,17 +400,17 @@ php-fpm8.4 -F -y /etc/php/8.4/fpm/php-fpm-workspace-84.conf
 
 #### Port Configuration
 
-- **PHP 7.4 FPM**: Port `9000`
-- **PHP 8.4 FPM**: Port `9001`
+- **PHP 7.4 FPM**: Port `9074`
+- **PHP 8.4 FPM**: Port `9084`
 
 #### ตัวอย่าง Nginx Configuration
 
 ```nginx
 # สำหรับ PHP 7.4
-fastcgi_pass php-workspace:9000;
+fastcgi_pass php-workspace:9074;
 
 # สำหรับ PHP 8.4
-fastcgi_pass php-workspace:9001;
+fastcgi_pass php-workspace:9084;
 ```
 
 ### 8. หมายเหตุ
@@ -419,6 +419,6 @@ fastcgi_pass php-workspace:9001;
 - Default PHP version คือ 8.4
 - สามารถใช้ PHP หลายเวอร์ชันพร้อมกันได้โดยระบุ path เต็ม
 - **PHP-FPM เริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น** พร้อมใช้งานกับ nginx
-- Workspace ใช้เป็น PHP-FPM server โดยเปิด port 9000 (PHP 7.4) และ 9001 (PHP 8.4)
+- Workspace ใช้เป็น PHP-FPM server โดยเปิด port 9074 (PHP 7.4) และ 9084 (PHP 8.4)
 - ถ้าต้องการเข้าใช้งาน container แบบ interactive ให้ใช้ `docker-compose exec workspace bash` (PHP-FPM จะยังทำงานอยู่)
 

@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   workspace:
@@ -7,8 +6,8 @@ services:
       dockerfile: Dockerfile.workspace
     container_name: php-workspace
     ports:
-      - "9000:9000"  # PHP 7.4 FPM
-      - "9001:9001"  # PHP 8.4/8.3 FPM
+      - "9074:9074"  # PHP 7.4 FPM
+      - "9084:9084"  # PHP 8.4 FPM
     volumes:
       - ./www:/var/www/html
     networks:

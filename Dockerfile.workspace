@@ -102,7 +102,7 @@ RUN chmod +x /usr/local/bin/start-php-fpm.sh
 WORKDIR /var/www/html
 
 # Expose PHP-FPM ports
-EXPOSE 9000 9001
+EXPOSE 9074 9084
 
 # Default command - can be overridden in docker-compose
 CMD ["/bin/bash"]

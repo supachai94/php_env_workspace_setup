@@ -19,7 +19,7 @@ trap cleanup SIGTERM SIGINT
 
 # Start PHP 7.4 FPM
 if [ -f /usr/sbin/php-fpm7.4 ]; then
-    echo "Starting PHP 7.4 FPM on port 9000..."
+    echo "Starting PHP 7.4 FPM on port 9074..."
     php-fpm7.4 -F -y /etc/php/7.4/fpm/php-fpm-workspace-74.conf &
     PHP74_PID=$!
     echo "PHP 7.4 FPM started (PID: $PHP74_PID)"
@@ -27,7 +27,7 @@ fi
 
 # Start PHP 8.4 FPM
 if [ -f /usr/sbin/php-fpm8.4 ]; then
-    echo "Starting PHP 8.4 FPM on port 9001..."
+    echo "Starting PHP 8.4 FPM on port 9084..."
     php-fpm8.4 -F -y /etc/php/8.4/fpm/php-fpm-workspace-84.conf &
     PHP84_PID=$!
     echo "PHP 8.4 FPM started (PID: $PHP84_PID)"
