@@ -310,9 +310,30 @@ Workspace container มี:
 - **Vim/Nano** - Text editors
 - **Build tools** - สำหรับ compile extensions
 
-### 7. หมายเหตุ
+### 7. Volume Mapping
+
+Workspace container มี volume mapping ดังนี้:
+
+- `./www` → `/var/www/html` - โฟลเดอร์สำหรับเก็บโค้ด PHP/Laravel
+- `../php_project` → `/var/www/php_project` - โฟลเดอร์ php_project ที่อยู่ระดับเดียวกันกับ php_env
+
+**ตัวอย่างการใช้งาน:**
+
+```bash
+# เข้าใช้งาน workspace
+docker-compose exec workspace bash
+
+# ใช้งานโปรเจคใน www
+cd /var/www/html
+
+# ใช้งานโปรเจคใน php_project
+cd /var/www/php_project
+```
+
+### 8. หมายเหตุ
 
 - โฟลเดอร์ `www` จะถูก map ไปที่ `/var/www/html` ใน workspace container
+- โฟลเดอร์ `php_project` (ระดับเดียวกันกับ php_env) จะถูก map ไปที่ `/var/www/php_project`
 - Default PHP version คือ 8.4
 - สามารถใช้ PHP หลายเวอร์ชันพร้อมกันได้โดยระบุ path เต็ม
 - Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก
