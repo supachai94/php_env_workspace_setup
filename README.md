@@ -1,21 +1,15 @@
-# PHP-FPM Docker Environment
+# PHP Development Workspace
 
-โปรเจคนี้ประกอบด้วย Docker workspace ที่มี PHP-FPM เวอร์ชัน 7.4 และ 8.4 อยู่ใน container เดียวกัน โดยแต่ละเวอร์ชันจะเปิด port แยกกันเพื่อให้ nginx เรียกใช้งานได้
+โปรเจคนี้ประกอบด้วย Docker workspace สำหรับการพัฒนา ที่มี PHP CLI เวอร์ชัน 7.4 และ 8.4 อยู่ใน container เดียวกัน สำหรับใช้งานกับ Laravel และ PHP projects
 
-## Port Configuration
-
-- **PHP 7.4 FPM**: Port `9074`
-- **PHP 8.4 FPM**: Port `9084`
+**หมายเหตุ**: Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก
 
 ## โครงสร้างไฟล์
 
 ```
 .
 ├── Dockerfile.workspace              # Dockerfile สำหรับ Development Workspace
-├── php-fpm-workspace-74.conf         # Config สำหรับ PHP-FPM 7.4
-├── php-fpm-workspace-84.conf         # Config สำหรับ PHP-FPM 8.4
 ├── php.ini                            # PHP configuration สำหรับ Laravel
-├── start-php-fpm.sh                  # Script สำหรับเริ่ม PHP-FPM
 ├── docker-entrypoint.sh              # Entrypoint script สำหรับตั้งค่า permissions
 ├── docker-compose.yml                # Docker Compose configuration
 ├── .gitignore                        # Git ignore rules
@@ -52,7 +46,7 @@ git push -u origin master
 docker-compose up -d --build
 ```
 
-**หมายเหตุ**: PHP-FPM จะเริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น พร้อมใช้งานกับ nginx ทันที
+**หมายเหตุ**: Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก
 
 ### 2. ตรวจสอบสถานะ Containers
 
@@ -73,54 +67,6 @@ docker-compose logs workspace
 docker-compose down
 ```
 
-## การเชื่อมต่อกับ Nginx
-
-### ตัวอย่าง Nginx Configuration สำหรับ PHP 7.4
-
-```nginx
-server {
-    listen 80;
-    server_name example.com;
-    root /var/www/html;
-    index index.php index.html;
-
-    location ~ \.php$ {
-        fastcgi_pass php-workspace:9074;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-### ตัวอย่าง Nginx Configuration สำหรับ PHP 8.4
-
-```nginx
-server {
-    listen 80;
-    server_name example.com;
-    root /var/www/html;
-    index index.php index.html;
-
-    location ~ \.php$ {
-        fastcgi_pass php-workspace:9084;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-**หมายเหตุ**: หาก nginx อยู่ใน Docker network เดียวกันกับ PHP-FPM container ให้ใช้ชื่อ service `php-workspace` แทน `localhost` หรือ `127.0.0.1`
-
-### หาก Nginx อยู่บน Host Machine
-
-หาก nginx ทำงานบน host machine (ไม่ใช่ใน Docker) ให้ใช้:
-
-```nginx
-fastcgi_pass 127.0.0.1:9074;  # สำหรับ PHP 7.4
-fastcgi_pass 127.0.0.1:9084;  # สำหรับ PHP 8.4
-```
 
 ## PHP Extensions ที่ติดตั้ง
 
@@ -236,7 +182,7 @@ server {
     }
 
     location ~ \.php$ {
-        fastcgi_pass php-workspace:9084;  # หรือ php-workspace:9074 สำหรับ PHP 7.4
+        fastcgi_pass <php-fpm-container>:9000;  # ใช้ PHP-FPM container แยก
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
@@ -364,61 +310,11 @@ Workspace container มี:
 - **Vim/Nano** - Text editors
 - **Build tools** - สำหรับ compile extensions
 
-### 7. ใช้งาน PHP-FPM จาก Workspace
-
-**PHP-FPM จะเริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น** พร้อมใช้งานกับ nginx ทันที
-
-Workspace container มี PHP-FPM ทั้ง PHP 7.4 และ PHP 8.4 ทำงานพร้อมกัน:
-
-- **PHP 7.4 FPM**: ทำงานบน port 9074 อัตโนมัติ
-- **PHP 8.4 FPM**: ทำงานบน port 9084 อัตโนมัติ
-
-#### ตรวจสอบสถานะ PHP-FPM
-
-```bash
-# ตรวจสอบว่า PHP-FPM ทำงานอยู่
-docker-compose exec workspace ps aux | grep php-fpm
-
-# ตรวจสอบ logs
-docker-compose logs workspace
-```
-
-#### เริ่ม PHP-FPM แบบ Manual (ถ้าต้องการ)
-
-ถ้าต้องการเริ่ม PHP-FPM แบบ manual (เช่น หลังจากเข้า container):
-
-```bash
-# เข้าใช้งาน workspace
-docker-compose exec workspace bash
-
-# เริ่ม PHP 7.4 FPM
-php-fpm7.4 -F -y /etc/php/7.4/fpm/php-fpm-workspace-74.conf
-
-# เริ่ม PHP 8.4 FPM (ใน terminal อีกตัว)
-php-fpm8.4 -F -y /etc/php/8.4/fpm/php-fpm-workspace-84.conf
-```
-
-#### Port Configuration
-
-- **PHP 7.4 FPM**: Port `9074`
-- **PHP 8.4 FPM**: Port `9084`
-
-#### ตัวอย่าง Nginx Configuration
-
-```nginx
-# สำหรับ PHP 7.4
-fastcgi_pass php-workspace:9074;
-
-# สำหรับ PHP 8.4
-fastcgi_pass php-workspace:9084;
-```
-
-### 8. หมายเหตุ
+### 7. หมายเหตุ
 
 - โฟลเดอร์ `www` จะถูก map ไปที่ `/var/www/html` ใน workspace container
 - Default PHP version คือ 8.4
 - สามารถใช้ PHP หลายเวอร์ชันพร้อมกันได้โดยระบุ path เต็ม
-- **PHP-FPM เริ่มทำงานอัตโนมัติเมื่อ container เริ่มต้น** พร้อมใช้งานกับ nginx
-- Workspace ใช้เป็น PHP-FPM server โดยเปิด port 9074 (PHP 7.4) และ 9084 (PHP 8.4)
-- ถ้าต้องการเข้าใช้งาน container แบบ interactive ให้ใช้ `docker-compose exec workspace bash` (PHP-FPM จะยังทำงานอยู่)
+- Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก
+- ถ้าต้องการเข้าใช้งาน container แบบ interactive ให้ใช้ `docker-compose exec workspace bash`
 

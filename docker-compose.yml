@@ -5,15 +5,13 @@ services:
       context: .
       dockerfile: Dockerfile.workspace
     container_name: php-workspace
-    ports:
-      - "9074:9074"  # PHP 7.4 FPM
-      - "9084:9084"  # PHP 8.4 FPM
     volumes:
       - ./www:/var/www/html
     networks:
       - php-network
+    stdin_open: true
+    tty: true
     restart: unless-stopped
-    command: /usr/local/bin/start-php-fpm.sh
 
 networks:
   php-network:
