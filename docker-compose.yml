@@ -7,7 +7,12 @@ services:
     container_name: php-workspace
     volumes:
       - ../php_project:/var/www/php_project
+    networks:
+      - php-network
     stdin_open: true
     tty: true
     restart: unless-stopped
 
+networks:
+  php-network:
+    driver: bridge
