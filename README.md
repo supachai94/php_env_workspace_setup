@@ -14,7 +14,6 @@
 ├── docker-compose.yml                # Docker Compose configuration
 ├── .gitignore                        # Git ignore rules
 ├── .gitattributes                    # Git attributes
-└── www/                               # โฟลเดอร์สำหรับเก็บโค้ด PHP/Laravel (จะถูกสร้างอัตโนมัติ)
 ```
 
 ## Git Repository
@@ -36,7 +35,7 @@ git remote add origin <your-repo-url>
 git push -u origin master
 ```
 
-**หมายเหตุ**: โฟลเดอร์ `www/` ถูก ignore โดย Git เพื่อไม่ให้ commit โค้ดโปรเจคเข้าไปใน repository นี้
+**หมายเหตุ**: โฟลเดอร์ `php_project/` ถูก ignore โดย Git เพื่อไม่ให้ commit โค้ดโปรเจคเข้าไปใน repository นี้
 
 ## การใช้งาน
 
@@ -97,15 +96,13 @@ Extensions ที่ติดตั้งสำหรับ Laravel 10:
 
 ## การทดสอบ
 
-สร้างไฟล์ `www/index.php` เพื่อทดสอบ:
+สร้างไฟล์ใน `php_project/index.php` เพื่อทดสอบ:
 
 ```php
 <?php
 phpinfo();
 ?>
 ```
-
-จากนั้นเข้าถึงผ่าน nginx ที่ตั้งค่าไว้
 
 ## การตรวจสอบ PHP Version
 
@@ -128,25 +125,28 @@ docker-compose exec workspace php -v
 ### 1. ติดตั้ง Laravel Project
 
 ```bash
+# เข้าใช้งาน workspace
+docker-compose exec workspace bash
+
 # สร้าง Laravel 10 project ใหม่ (ใช้ PHP 8.4)
-docker-compose exec workspace composer create-project laravel/laravel:^10.0 www
+composer create-project laravel/laravel:^10.0 /var/www/php_project
 
 # หรือสร้าง Laravel 9 project
-docker-compose exec workspace composer create-project laravel/laravel:^9.0 www
+composer create-project laravel/laravel:^9.0 /var/www/php_project
 
 # หรือ clone project ที่มีอยู่แล้ว
-git clone <your-repo> www
+git clone <your-repo> /var/www/php_project
 ```
 
 ### 2. ตั้งค่า Permissions
 
-ถ้าต้องการตั้งค่า permissions ด้วยตนเอง:
+ถ้าต้องการตั้งค่า permissions ด้วยตนเอง (สำหรับ Laravel):
 
 ```bash
-docker-compose exec workspace chown -R www-data:www-data /var/www/html/storage
-docker-compose exec workspace chown -R www-data:www-data /var/www/html/bootstrap/cache
-docker-compose exec workspace chmod -R 775 /var/www/html/storage
-docker-compose exec workspace chmod -R 775 /var/www/html/bootstrap/cache
+docker-compose exec workspace chown -R www-data:www-data /var/www/php_project/storage
+docker-compose exec workspace chown -R www-data:www-data /var/www/php_project/bootstrap/cache
+docker-compose exec workspace chmod -R 775 /var/www/php_project/storage
+docker-compose exec workspace chmod -R 775 /var/www/php_project/bootstrap/cache
 ```
 
 ### 3. ติดตั้ง Dependencies
@@ -174,7 +174,7 @@ docker-compose exec workspace php artisan migrate
 server {
     listen 80;
     server_name laravel.test;
-    root /var/www/html/public;
+    root /var/www/php_project/public;
     index index.php index.html;
 
     location / {
@@ -195,7 +195,7 @@ server {
 ```
 
 **หมายเหตุสำคัญ**: 
-- ใช้ `root /var/www/html/public;` ไม่ใช่ `/var/www/html` เพราะ Laravel ใช้โฟลเดอร์ `public` เป็น document root
+- ใช้ `root /var/www/php_project/public;` ไม่ใช่ `/var/www/php_project` เพราะ Laravel ใช้โฟลเดอร์ `public` เป็น document root
 - ต้องมี `try_files` directive เพื่อให้ Laravel routing ทำงานได้ถูกต้อง
 
 ### 7. ตรวจสอบ PHP Extensions ที่ติดตั้ง
@@ -314,7 +314,6 @@ Workspace container มี:
 
 Workspace container มี volume mapping ดังนี้:
 
-- `./www` → `/var/www/html` - โฟลเดอร์สำหรับเก็บโค้ด PHP/Laravel
 - `../php_project` → `/var/www/php_project` - โฟลเดอร์ php_project ที่อยู่ระดับเดียวกันกับ php_env
 
 **ตัวอย่างการใช้งาน:**
@@ -323,17 +322,16 @@ Workspace container มี volume mapping ดังนี้:
 # เข้าใช้งาน workspace
 docker-compose exec workspace bash
 
-# ใช้งานโปรเจคใน www
-cd /var/www/html
-
-# ใช้งานโปรเจคใน php_project
+# ใช้งานโปรเจคใน php_project (default working directory)
 cd /var/www/php_project
+# หรือ
+cd .
 ```
 
 ### 8. หมายเหตุ
 
-- โฟลเดอร์ `www` จะถูก map ไปที่ `/var/www/html` ใน workspace container
 - โฟลเดอร์ `php_project` (ระดับเดียวกันกับ php_env) จะถูก map ไปที่ `/var/www/php_project`
+- Default working directory คือ `/var/www/php_project`
 - Default PHP version คือ 8.4
 - สามารถใช้ PHP หลายเวอร์ชันพร้อมกันได้โดยระบุ path เต็ม
 - Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก

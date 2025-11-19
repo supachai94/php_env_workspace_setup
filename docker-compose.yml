@@ -6,7 +6,6 @@ services:
       dockerfile: Dockerfile.workspace
     container_name: php-workspace
     volumes:
-      - ./www:/var/www/html
       - ../php_project:/var/www/php_project
     networks:
       - php-network
