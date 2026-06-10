@@ -90,6 +90,11 @@ RUN update-alternatives --install /usr/bin/php php /usr/bin/php7.4 74 && \
     printf '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php8.4\n' > /usr/local/bin/php84 && \
     chmod +x /usr/local/bin/php74 /usr/local/bin/php81 /usr/local/bin/php84
 
+# Configure PHP-FPM to listen on TCP so other containers can reach it
+RUN sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/7.4/fpm/pool.d/www.conf && \
+    sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/8.1/fpm/pool.d/www.conf && \
+    sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php/8.4/fpm/pool.d/www.conf
+
 # FPM helpers for starting each version in foreground mode
 RUN printf '#!/bin/bash\nexec php-fpm7.4 -F\n' > /usr/local/bin/php74-fpm && \
     printf '#!/bin/bash\nexec php-fpm8.1 -F\n' > /usr/local/bin/php81-fpm && \
