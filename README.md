@@ -1,8 +1,8 @@
 # PHP Development Workspace
 
-โปรเจคนี้ประกอบด้วย Docker workspace สำหรับการพัฒนา ที่มี PHP CLI เวอร์ชัน 7.4 และ 8.4 อยู่ใน container เดียวกัน สำหรับใช้งานกับ Laravel และ PHP projects
+โปรเจคนี้ประกอบด้วย Docker workspace สำหรับการพัฒนา ที่มี PHP CLI เวอร์ชัน 7.4, 8.1 และ 8.4 อยู่ใน container เดียวกัน สำหรับใช้งานกับ Laravel และ PHP projects
 
-**หมายเหตุ**: Workspace นี้ใช้สำหรับการพัฒนาเท่านั้น (PHP CLI) สำหรับ PHP-FPM ให้ใช้ container แยก
+**หมายเหตุ**: Workspace นี้มีทั้ง CLI และ PHP-FPM services แยกตามเวอร์ชัน (7.4 / 8.1 / 8.4) เพื่อให้ใช้กับ Nginx/Apache ได้ตามต้องการ
 
 ## โครงสร้างไฟล์
 
@@ -92,7 +92,7 @@ Extensions ที่ติดตั้งสำหรับ Laravel 10:
 - **opcache** - สำหรับเพิ่มประสิทธิภาพการทำงาน
 - **exif** - สำหรับจัดการข้อมูล EXIF จากรูปภาพ
 
-**หมายเหตุ**: Laravel 10 ต้องการ PHP >= 8.1 ดังนั้นควรใช้ PHP 8.4 (PHP 7.4 ไม่รองรับ Laravel 10)
+**หมายเหตุ**: Laravel 10 ต้องการ PHP >= 8.1 ดังนั้น workspace นี้จึงมี PHP 8.1 และ 8.4 ให้เลือกใช้งาน ส่วน PHP 7.4 เหมาะกับโปรเจกต์เก่าที่ต้องการเวอร์ชันเดิม
 
 ## การทดสอบ
 
@@ -108,9 +108,11 @@ phpinfo();
 
 ```bash
 # ตรวจสอบ PHP 7.4
-docker-compose exec workspace php7.4 -v
-
+# ตรวจสอบ PHP 8.1
 # ตรวจสอบ PHP 8.4
+
+docker-compose exec workspace php7.4 -v
+docker-compose exec workspace php8.1 -v
 docker-compose exec workspace php -v
 ```
 
@@ -118,9 +120,9 @@ docker-compose exec workspace php -v
 
 ### Laravel Version Support
 
-- **Laravel 10**: ต้องการ PHP >= 8.1 (แนะนำใช้ PHP 8.4) ✅
-- **Laravel 9**: ต้องการ PHP >= 8.0 (รองรับ PHP 8.4) ✅
-- **Laravel 8**: ต้องการ PHP >= 7.3 (รองรับ PHP 7.4 และ 8.4) ✅
+- **Laravel 10**: ต้องการ PHP >= 8.1 (รองรับ PHP 8.1 และ 8.4) ✅
+- **Laravel 9**: ต้องการ PHP >= 8.0 (รองรับ PHP 8.1 และ 8.4) ✅
+- **Laravel 8**: ต้องการ PHP >= 7.3 (รองรับ PHP 7.4, 8.1 และ 8.4) ✅
 
 ### 1. ติดตั้ง Laravel Project
 
@@ -216,7 +218,7 @@ docker-compose exec workspace php artisan about
 
 ## Development Workspace
 
-Workspace container สำหรับการพัฒนา ที่มีทั้ง PHP 7.4 และ PHP 8.4 อยู่ใน container เดียวกัน
+Workspace container สำหรับการพัฒนา ที่มีทั้ง PHP 7.4, 8.1 และ 8.4 อยู่ใน container เดียวกัน
 
 ### 1. เข้าใช้งาน Workspace
 
@@ -237,6 +239,10 @@ docker-compose run --rm workspace bash
 php74 -v
 /usr/bin/php7.4 -v
 
+# ใช้ PHP 8.1
+php81 -v
+/usr/bin/php8.1 -v
+
 # ใช้ PHP 8.4
 php -v
 php84 -v
@@ -244,6 +250,7 @@ php84 -v
 
 # สลับ default PHP version
 php74  # สลับเป็น PHP 7.4
+php81  # สลับเป็น PHP 8.1
 php84  # สลับเป็น PHP 8.4
 ```
 
@@ -274,6 +281,7 @@ composer create-project laravel/laravel .
 
 # ใช้ PHP version เฉพาะกับ Composer
 php7.4 /usr/bin/composer install
+php8.1 /usr/bin/composer install
 php8.4 /usr/bin/composer install
 ```
 
@@ -300,18 +308,69 @@ php artisan route:list
 php artisan tinker
 ```
 
-### 6. โครงสร้าง Workspace
+### 6.1 PHP-FPM Services
 
-Workspace container มี:
-- **Base Image**: Debian 13 (Trixie)
-- **PHP 7.4** - พร้อม extensions สำหรับ Laravel
-- **PHP 8.4** - พร้อม extensions สำหรับ Laravel
-- **Composer** - สำหรับจัดการ dependencies
-- **Git** - สำหรับ version control
-- **Vim/Nano** - Text editors
-- **Build tools** - สำหรับ compile extensions
+โปรเจคนี้มี PHP-FPM แยกตามเวอร์ชันให้พร้อมใช้งาน:
 
-### 7. Volume Mapping
+- `php74-fpm` → PHP-FPM 7.4
+- `php81-fpm` → PHP-FPM 8.1
+- `php84-fpm` → PHP-FPM 8.4
+
+#### วิธีเริ่มใช้งาน FPM
+
+```bash
+docker-compose up -d --build php74-fpm php81-fpm php84-fpm
+```
+
+#### ตรวจสอบสถานะ
+
+```bash
+docker-compose ps
+```
+
+#### ดู log ของ service
+
+```bash
+docker-compose logs -f php84-fpm
+```
+
+#### ทดสอบว่า FPM ฟังพอร์ตอยู่
+
+ใน compose นี้แต่ละ service expose ที่ `9000` ภายใน network เดียวกัน ดังนั้น Nginx/Apache container ต้องเชื่อมต่อผ่าน service name เช่น:
+
+- `php74-fpm:9000`
+- `php81-fpm:9000`
+- `php84-fpm:9000`
+
+#### ตัวอย่าง Nginx config
+
+```nginx
+server {
+    listen 80;
+    server_name laravel.test;
+    root /var/www/php_project/public;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass php84-fpm:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+#### หมายเหตุสำคัญ
+
+- ถ้าจะใช้ PHP 7.4 ให้เปลี่ยน `fastcgi_pass` เป็น `php74-fpm:9000`
+- ถ้าจะใช้ PHP 8.1 ให้เปลี่ยนเป็น `php81-fpm:9000`
+- ถ้าจะใช้ PHP 8.4 ให้ใช้ `php84-fpm:9000`
+- Nginx ต้องอยู่ใน Docker network เดียวกับ service เหล่านี้ หรือใช้ external network ร่วมกัน
+
 
 Workspace container มี volume mapping ดังนี้:
 

@@ -22,11 +22,12 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/deb.sury.org-php.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ trixie main" > /etc/apt/sources.list.d/php.list
 
-# Install PHP 7.4 and extensions (required for Laravel 10)
+# Install PHP 7.4, 8.1 and 8.4 with common Laravel extensions + FPM
 RUN apt-get update && apt-get install -y \
     php7.4 \
     php7.4-cli \
     php7.4-common \
+    php7.4-fpm \
     php7.4-mysql \
     php7.4-mbstring \
     php7.4-xml \
@@ -40,13 +41,27 @@ RUN apt-get update && apt-get install -y \
     php7.4-tokenizer \
     php7.4-fileinfo \
     php7.4-exif \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install PHP 8.4 and extensions (required for Laravel 10)
-RUN apt-get update && apt-get install -y \
+    php8.1 \
+    php8.1-cli \
+    php8.1-common \
+    php8.1-fpm \
+    php8.1-mysql \
+    php8.1-mbstring \
+    php8.1-xml \
+    php8.1-dom \
+    php8.1-curl \
+    php8.1-zip \
+    php8.1-gd \
+    php8.1-intl \
+    php8.1-bcmath \
+    php8.1-opcache \
+    php8.1-tokenizer \
+    php8.1-fileinfo \
+    php8.1-exif \
     php8.4 \
     php8.4-cli \
     php8.4-common \
+    php8.4-fpm \
     php8.4-mysql \
     php8.4-mbstring \
     php8.4-xml \
@@ -65,29 +80,41 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create symlinks for easy PHP version switching
+# Create helpers for switching PHP versions
 RUN update-alternatives --install /usr/bin/php php /usr/bin/php7.4 74 && \
+    update-alternatives --install /usr/bin/php php /usr/bin/php8.1 81 && \
     update-alternatives --install /usr/bin/php php /usr/bin/php8.4 84 && \
     update-alternatives --set php /usr/bin/php8.4 && \
-    echo '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php8.4' > /usr/local/bin/php84 && \
-    chmod +x /usr/local/bin/php84
+    printf '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php7.4\n' > /usr/local/bin/php74 && \
+    printf '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php8.1\n' > /usr/local/bin/php81 && \
+    printf '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php8.4\n' > /usr/local/bin/php84 && \
+    chmod +x /usr/local/bin/php74 /usr/local/bin/php81 /usr/local/bin/php84
 
-# Create helper script for PHP 7.4
-RUN echo '#!/bin/bash\nupdate-alternatives --set php /usr/bin/php7.4' > /usr/local/bin/php74 && \
-    chmod +x /usr/local/bin/php74
+# FPM helpers for starting each version in foreground mode
+RUN printf '#!/bin/bash\nexec php-fpm7.4 -F\n' > /usr/local/bin/php74-fpm && \
+    printf '#!/bin/bash\nexec php-fpm8.1 -F\n' > /usr/local/bin/php81-fpm && \
+    printf '#!/bin/bash\nexec php-fpm8.4 -F\n' > /usr/local/bin/php84-fpm && \
+    chmod +x /usr/local/bin/php74-fpm /usr/local/bin/php81-fpm /usr/local/bin/php84-fpm
 
 # Create alias for easy access
-RUN echo 'alias php74="/usr/bin/php7.4"' >> /root/.bashrc && \
-    echo 'alias php84="php"' >> /root/.bashrc && \
+RUN echo 'alias php74="/usr/local/bin/php74"' >> /root/.bashrc && \
+    echo 'alias php81="/usr/local/bin/php81"' >> /root/.bashrc && \
+    echo 'alias php84="/usr/local/bin/php84"' >> /root/.bashrc && \
+    echo 'alias php74-fpm="/usr/local/bin/php74-fpm"' >> /root/.bashrc && \
+    echo 'alias php81-fpm="/usr/local/bin/php81-fpm"' >> /root/.bashrc && \
+    echo 'alias php84-fpm="/usr/local/bin/php84-fpm"' >> /root/.bashrc && \
     echo 'alias composer="/usr/bin/composer"' >> /root/.bashrc
 
 # Copy PHP configuration for Laravel
 COPY php.ini /etc/php/7.4/cli/conf.d/99-laravel.ini
+COPY php.ini /etc/php/8.1/cli/conf.d/99-laravel.ini
 COPY php.ini /etc/php/8.4/cli/conf.d/99-laravel.ini
+COPY php.ini /etc/php/7.4/fpm/conf.d/99-laravel.ini
+COPY php.ini /etc/php/8.1/fpm/conf.d/99-laravel.ini
+COPY php.ini /etc/php/8.4/fpm/conf.d/99-laravel.ini
 
 # Set working directory
 WORKDIR /var/www/php_project
 
 # Default command
 CMD ["/bin/bash"]
-

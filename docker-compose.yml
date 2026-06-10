@@ -1,4 +1,3 @@
-
 services:
   workspace:
     build:
@@ -11,6 +10,48 @@ services:
       - php-network
     stdin_open: true
     tty: true
+    restart: unless-stopped
+
+  php74-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace
+    container_name: php74-fpm
+    command: ["php-fpm7.4", "-F"]
+    volumes:
+      - ../php_project:/var/www/php_project
+    expose:
+      - "9000"
+    networks:
+      - php-network
+    restart: unless-stopped
+
+  php81-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace
+    container_name: php81-fpm
+    command: ["php-fpm8.1", "-F"]
+    volumes:
+      - ../php_project:/var/www/php_project
+    expose:
+      - "9000"
+    networks:
+      - php-network
+    restart: unless-stopped
+
+  php84-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace
+    container_name: php84-fpm
+    command: ["php-fpm8.4", "-F"]
+    volumes:
+      - ../php_project:/var/www/php_project
+    expose:
+      - "9000"
+    networks:
+      - php-network
     restart: unless-stopped
 
 networks:
